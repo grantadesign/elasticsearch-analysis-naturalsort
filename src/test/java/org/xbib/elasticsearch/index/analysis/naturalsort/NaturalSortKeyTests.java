@@ -1,22 +1,30 @@
 package org.xbib.elasticsearch.index.analysis.naturalsort;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
-import static org.junit.Assert.assertEquals;
 
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.search.sort.SortOrder;
 import org.junit.Test;
-import org.xbib.elasticsearch.NodeTestUtils;
+import org.elasticsearch.test.ESIntegTestCase;
+import org.xbib.elasticsearch.plugin.naturalsort.NaturalSortAnalysisPlugin;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  *
  */
-public class NaturalSortKeyTests extends NodeTestUtils {
+public class NaturalSortKeyTests extends ESIntegTestCase {
+
+    @Override
+    protected Collection<Class<? extends Plugin>> nodePlugins() {
+        return Collections.singleton(NaturalSortAnalysisPlugin.class);
+    }
 
     @Test
     public void testSort() throws Exception {
-        startCluster();
         try {
             Settings settings = Settings.builder()
                     .build();
@@ -56,18 +64,16 @@ public class NaturalSortKeyTests extends NodeTestUtils {
                     .addSort("points.sort", SortOrder.ASC)
                     .execute().actionGet();
 
-            assertEquals(3L, searchResponse.getHits().totalHits());
+            assertEquals(3L, searchResponse.getHits().totalHits);
             assertEquals("Bob: 2 points", searchResponse.getHits().getAt(0).field("points").getValue().toString());
             assertEquals("Bob: 3 points", searchResponse.getHits().getAt(1).field("points").getValue().toString());
             assertEquals("Bob: 10 points", searchResponse.getHits().getAt(2).field("points").getValue().toString());
         } finally {
-            stopCluster();
         }
     }
 
     @Test
     public void testComplex() throws Exception {
-        startCluster();
         try {
             Settings settings = Settings.builder()
                     .build();
@@ -104,7 +110,7 @@ public class NaturalSortKeyTests extends NodeTestUtils {
                     .addStoredField("points")
                     .addSort("points.sort", SortOrder.ASC)
                     .execute().actionGet();
-            assertEquals(6L, searchResponse.getHits().totalHits());
+            assertEquals(6L, searchResponse.getHits().totalHits);
             assertEquals("7 1 1 1", searchResponse.getHits().getAt(0).field("points").getValue().toString());
             assertEquals("7 2 1 2", searchResponse.getHits().getAt(1).field("points").getValue().toString());
             assertEquals("7 10 1 1", searchResponse.getHits().getAt(2).field("points").getValue().toString());
@@ -116,7 +122,7 @@ public class NaturalSortKeyTests extends NodeTestUtils {
                     .addStoredField("points")
                     .addSort("points.sort", SortOrder.DESC)
                     .execute().actionGet();
-            assertEquals(6L, searchResponse.getHits().totalHits());
+            assertEquals(6L, searchResponse.getHits().totalHits);
             assertEquals("7 201 2 1", searchResponse.getHits().getAt(0).field("points").getValue().toString());
             assertEquals("7 25 2 1", searchResponse.getHits().getAt(1).field("points").getValue().toString());
             assertEquals("7 20 2 1", searchResponse.getHits().getAt(2).field("points").getValue().toString());
@@ -124,14 +130,13 @@ public class NaturalSortKeyTests extends NodeTestUtils {
             assertEquals("7 2 1 2", searchResponse.getHits().getAt(4).field("points").getValue().toString());
             assertEquals("7 1 1 1", searchResponse.getHits().getAt(5).field("points").getValue().toString());
         } finally {
-            stopCluster();
         }
     }
 
     @Test
     public void testDewey() throws Exception {
-        startCluster();
         try {
+            ensureGreen();
             Settings settings = Settings.builder()
                     .build();
             client().admin().indices().prepareCreate("test")
@@ -167,7 +172,7 @@ public class NaturalSortKeyTests extends NodeTestUtils {
                     .addStoredField("notation")
                     .addSort("notation.sort", SortOrder.ASC)
                     .execute().actionGet();
-            assertEquals(7L, searchResponse.getHits().totalHits());
+            assertEquals(7L, searchResponse.getHits().totalHits);
             assertEquals("1.0.0", searchResponse.getHits().getAt(0).field("notation").getValue().toString());
             assertEquals("1.10.0", searchResponse.getHits().getAt(1).field("notation").getValue().toString());
             assertEquals("2.1.1", searchResponse.getHits().getAt(2).field("notation").getValue().toString());
@@ -176,7 +181,6 @@ public class NaturalSortKeyTests extends NodeTestUtils {
             assertEquals("10.1.1", searchResponse.getHits().getAt(5).field("notation").getValue().toString());
             assertEquals("10.10.1", searchResponse.getHits().getAt(6).field("notation").getValue().toString());
         } finally {
-            stopCluster();
         }
     }
 }

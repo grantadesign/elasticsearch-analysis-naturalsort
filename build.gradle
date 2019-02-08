@@ -73,8 +73,13 @@ tasks.withType(JavaCompile) {
     options.compilerArgs << "-Xlint:all" << "-profile" << "compact2"
 }
 
+// For a build against ES 6.4.2, there is a bug in the test framework
+// as described in https://github.com/elastic/elasticsearch/pull/33066 "codebase property already set: codebase.elasticsearch-secure-sm"
+// As a workaround, we set tests.security.manager to false
+// This has been fixed in ElasticSearch 6.5.2, so once the version is increased past that, we can remove the line disabling the security manager
 test {
     systemProperties['path.home'] = System.getProperty("user.dir")
+    systemProperties['tests.security.manager'] = 'false'
     testLogging {
         showStandardStreams = false
         exceptionFormat = 'full'
